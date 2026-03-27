@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Subtitles Studio</title>
+    <meta name="description" content="Video subtitle editor with draggable captions and real-time preview">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- ─── Header ─────────────────────────────────────── -->
+    <header id="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <defs><linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs>
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                <h1>SubStudio</h1>
+            </div>
+        </div>
+        <div class="header-right">
+            <button id="btn-upload" class="btn btn-ghost">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Video
+            </button>
+        </div>
+    </header>
+
+    <!-- ─── Main Layout ────────────────────────────────── -->
+    <main id="app-main">
+        <!-- Left: Video Player -->
+        <section id="player-section">
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state">
+                <div class="empty-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                        <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/>
+                        <line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/>
+                        <line x1="17" y1="7" x2="22" y2="7"/>
+                    </svg>
+                </div>
+                <p>Select a video from the sidebar or upload one</p>
+            </div>
+
+            <!-- Video Container -->
+            <div id="video-container" class="video-container hidden">
+                <video id="video-player" controls>
+                    <source id="video-source" src="" type="video/mp4">
+                </video>
+                <!-- Draggable Caption Overlay -->
+                <div id="caption-overlay" class="caption-overlay">
+                    <span id="caption-text"></span>
+                </div>
+                <!-- Drag hint -->
+                <div id="drag-hint" class="drag-hint hidden">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+                    Drag captions to reposition
+                </div>
+            </div>
+
+            <!-- Video Info Bar -->
+            <div id="video-info-bar" class="video-info-bar hidden">
+                <span id="video-name" class="video-name"></span>
+                <div class="info-actions">
+                    <button id="btn-process" class="btn btn-sm btn-accent" title="Transcribe with Whisper AI">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        Transcribe
+                    </button>
+                    <button id="btn-burn" class="btn btn-sm btn-primary" title="Burn subtitles into video">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Export
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Controls Panel -->
+        <aside id="controls-panel">
+            <!-- Video List -->
+            <div class="panel-section">
+                <div class="panel-header">
+                    <h2>Videos</h2>
+                    <button id="btn-refresh" class="btn-icon" title="Refresh list">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                    </button>
+                </div>
+                <ul id="video-list" class="video-list">
+                    <li class="video-list-empty">Loading...</li>
+                </ul>
+            </div>
+
+            <!-- Caption Style -->
+            <div class="panel-section">
+                <div class="panel-header">
+                    <h2>Caption Style</h2>
+                </div>
+
+                <!-- Preset Selector -->
+                <div class="control-group">
+                    <label for="preset-select">Preset</label>
+                    <select id="preset-select">
+                        <option value="netflix" selected>Netflix</option>
+                        <option value="reels">Reels</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+
+                <!-- Font Size -->
+                <div class="control-group">
+                    <label for="font-size-slider">Font Size <span id="font-size-value">24</span>px</label>
+                    <input type="range" id="font-size-slider" min="12" max="60" value="24">
+                </div>
+
+                <!-- Font Color -->
+                <div class="control-group">
+                    <label for="font-color">Font Color</label>
+                    <div class="color-input-wrap">
+                        <input type="color" id="font-color" value="#ffffff">
+                        <span id="font-color-hex">#ffffff</span>
+                    </div>
+                </div>
+
+                <!-- Outline Color -->
+                <div class="control-group">
+                    <label for="outline-color">Outline Color</label>
+                    <div class="color-input-wrap">
+                        <input type="color" id="outline-color" value="#000000">
+                        <span id="outline-color-hex">#000000</span>
+                    </div>
+                </div>
+
+                <!-- Background Toggle -->
+                <div class="control-group">
+                    <label for="bg-toggle">Background Box</label>
+                    <label class="toggle">
+                        <input type="checkbox" id="bg-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Caption Position -->
+            <div class="panel-section">
+                <div class="panel-header">
+                    <h2>Position</h2>
+                </div>
+                <div class="position-display">
+                    <div class="pos-item">
+                        <span class="pos-label">X</span>
+                        <span id="pos-x" class="pos-value">50%</span>
+                    </div>
+                    <div class="pos-item">
+                        <span class="pos-label">Y</span>
+                        <span id="pos-y" class="pos-value">85%</span>
+                    </div>
+                </div>
+                <button id="btn-reset-pos" class="btn btn-sm btn-ghost full-width">Reset to Default</button>
+            </div>
+
+            <!-- Subtitle Cues -->
+            <div class="panel-section">
+                <div class="panel-header">
+                    <h2>Subtitles</h2>
+                    <span id="cue-count" class="badge">0</span>
+                </div>
+                <ul id="cue-list" class="cue-list">
+                    <li class="cue-list-empty">No subtitles loaded</li>
+                </ul>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Video</h3>
+                <button id="btn-close-modal" class="btn-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="drop-zone" class="drop-zone">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <p>Drag & drop your video here</p>
+                    <span>or</span>
+                    <label class="btn btn-sm btn-accent" for="file-input">Browse Files</label>
+                    <input type="file" id="file-input" accept="video/*" hidden>
+                </div>
+                <div id="upload-progress" class="upload-progress hidden">
+                    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+                    <span id="upload-status">Uploading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div id="processing-overlay" class="processing-overlay hidden">
+        <div class="processing-card">
+            <div class="spinner"></div>
+            <h3 id="processing-title">Processing...</h3>
+            <p id="processing-message">This may take a moment</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
