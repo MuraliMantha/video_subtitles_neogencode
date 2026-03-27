@@ -3,7 +3,7 @@
 import os
 import whisper
 import subprocess
-from config import INPUT_DIR, OUTPUT_DIR, SUBTITLE_DIR, MODEL_SIZE, MAX_LINE_LENGTH
+from config import INPUT_DIR, OUTPUT_DIR, SUBTITLE_DIR, MODEL_SIZE, MAX_LINE_LENGTH, ACTIVE_STYLE
 
 model = whisper.load_model(MODEL_SIZE)
 
@@ -43,11 +43,24 @@ def generate_srt(video_path, srt_path):
             f.write(f"{text}\n\n")
 
 
-def burn_subtitles(video_path, srt_path, output_path):
-    style = "Fontsize=24,PrimaryColour=&Hffffff&,OutlineColour=&H000000&,BorderStyle=3,Outline=1,Shadow=0,Alignment=2"
+def build_style_string(style_config):
+    return (
+        f"Fontsize={style_config['font_size']},"
+        f"PrimaryColour={style_config['font_color']},"
+        f"OutlineColour={style_config['outline_color']},"
+        f"BorderStyle={style_config['border_style']},"
+        f"Outline={style_config['outline']},"
+        f"Shadow={style_config['shadow']},"
+        f"Alignment={style_config['alignment']},"
+        f"MarginV={style_config['margin_v']}"
+    )
 
-    # IMPORTANT: Convert path for FFmpeg
+def burn_subtitles(video_path, srt_path, output_path):
+    # Fix Windows path issue
     srt_path = srt_path.replace("\\", "/")
+
+    # Build style from config
+    style = build_style_string(ACTIVE_STYLE)
 
     command = [
         "ffmpeg",
